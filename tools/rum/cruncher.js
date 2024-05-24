@@ -41,19 +41,21 @@
  * @property {string} date - the base date of all bundles in the chunk
  * @property {RawBundle[]} rumBundles - the bundles, as retrieved from the server
  */
+
+import { MultiAttributeBasedConversion } from './conversions.js';
+
 /**
  * Calculates properties on the bundle, so that bundle-level filtering can be performed
  * @param {RawBundle} bundle the raw input bundle, without calculated properties
+ * by default it is a click
+ * @param calculator a conversion strategy to compute if a bundle has a conversion
  * @returns {Bundle} a bundle with additional properties
  */
-export function addCalculatedProps(bundle) {
+export function addCalculatedProps(bundle, calculator = new MultiAttributeBasedConversion(bundle, [{ checkpoint: 'click' }])) {
   bundle.events.forEach((e) => {
     if (e.checkpoint === 'enter') {
       bundle.visit = true;
       if (e.source === '') e.source = '(direct)';
-    }
-    if (e.checkpoint === 'click') {
-      bundle.conversion = true;
     }
     if (e.checkpoint === 'cwv-inp') {
       bundle.cwvINP = e.value;
@@ -68,6 +70,7 @@ export function addCalculatedProps(bundle) {
       bundle.cwvTTFB = e.value;
     }
   });
+  bundle.conversion = calculator.hasConversion();
   return bundle;
 }
 

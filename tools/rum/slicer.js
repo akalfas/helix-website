@@ -219,6 +219,12 @@ async function loadData(scope) {
   const params = new URL(window.location.href).searchParams;
   const endDate = params.get('endDate') ? `${params.get('endDate')}T00:00:00` : null;
 
+  const checkpoint = params.get('conversion.checkpoint');
+  const source = params.get('conversion.source');
+  const target = params.get('conversion.target');
+
+  loader.rawCriteria = [{ checkpoint: checkpoint || 'click', source, target }];
+
   if (scope === 'week') {
     dataChunks.load(await loader.fetchLastWeek(endDate));
   }
@@ -238,6 +244,7 @@ export function updateState() {
   url.searchParams.set('domain', DOMAIN);
   url.searchParams.set('filter', elems.filterInput.value);
   url.searchParams.set('view', elems.viewSelect.value);
+
   if (searchParams.get('endDate')) url.searchParams.set('endDate', searchParams.get('endDate'));
   if (searchParams.get('metrics')) url.searchParams.set('metrics', searchParams.get('metrics'));
   const selectedMetric = document.querySelector('.key-metrics li[aria-selected="true"]');

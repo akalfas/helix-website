@@ -4,6 +4,7 @@
  * file to here.
  */
 import { addCalculatedProps } from './cruncher.js';
+import { MultiAttributeBasedConversion } from './conversions.js';
 
 export default class DataLoader {
   constructor() {
@@ -11,6 +12,7 @@ export default class DataLoader {
     this.API_ENDPOINT = 'https://rum.fastly-aem.page/bundles';
     this.DOMAIN = 'www.thinktanked.org';
     this.DOMAIN_KEY = '';
+    this.criteria = [{ checkpoint: 'click' }];
   }
 
   flush() {
@@ -29,6 +31,11 @@ export default class DataLoader {
 
   set apiEndpoint(endpoint) {
     this.API_ENDPOINT = endpoint;
+    this.flush();
+  }
+
+  set rawCriteria(value) {
+    this.criteria = value;
     this.flush();
   }
 
@@ -55,7 +62,10 @@ export default class DataLoader {
     const resp = await fetch(apiRequestURL);
     const json = await resp.json();
     const { rumBundles } = json;
-    rumBundles.forEach((bundle) => addCalculatedProps(bundle));
+    rumBundles.forEach((bundle) => {
+      const strategy = new MultiAttributeBasedConversion(bundle, this.criteria);
+      addCalculatedProps(bundle, strategy);
+    });
     return { date, rumBundles };
   }
 
@@ -66,7 +76,10 @@ export default class DataLoader {
     const resp = await fetch(apiRequestURL);
     const json = await resp.json();
     const { rumBundles } = json;
-    rumBundles.forEach((bundle) => addCalculatedProps(bundle));
+    rumBundles.forEach((bundle) => {
+      const strategy = new MultiAttributeBasedConversion(bundle, this.criteria);
+      addCalculatedProps(bundle, strategy);
+    });
     return { date, rumBundles };
   }
 
@@ -78,7 +91,10 @@ export default class DataLoader {
     const resp = await fetch(apiRequestURL);
     const json = await resp.json();
     const { rumBundles } = json;
-    rumBundles.forEach((bundle) => addCalculatedProps(bundle));
+    rumBundles.forEach((bundle) => {
+      const strategy = new MultiAttributeBasedConversion(bundle, this.criteria);
+      addCalculatedProps(bundle, strategy);
+    });
     return { date, hour, rumBundles };
   }
 
