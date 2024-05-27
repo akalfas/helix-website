@@ -48,9 +48,10 @@ function extractedConversionParams() {
 // set up metrics for dataChunks
 dataChunks.addSeries('pageViews', (bundle) => bundle.weight);
 dataChunks.addSeries('visits', (bundle) => (bundle.visit ? bundle.weight : 0));
-// todo change here ...
+
+const rawCriteria = extractedConversionParams();
 dataChunks.addSeries('conversions', (bundle) => {
-  const calc = new MultiAttributeBasedConversion(bundle, extractedConversionParams());
+  const calc = new MultiAttributeBasedConversion(bundle, rawCriteria);
   return (calc.hasConversion() ? bundle.weight : 0);
 });
 dataChunks.addSeries('lcp', (bundle) => bundle.cwvLCP);
@@ -91,7 +92,6 @@ export function updateKeyMetrics(keyMetrics) {
 function updateDataFacets(filterText, params, checkpoint) {
   dataChunks.resetFacets();
   dataChunks.addFacet('conversions', (bundle) => {
-    const rawCriteria = extractedConversionParams();
     const calc = new MultiAttributeBasedConversion(bundle, rawCriteria);
     const hasConversion = calc.hasConversion();
     return hasConversion ? 'converting' : 'not converting';
