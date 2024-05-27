@@ -4,7 +4,6 @@
  * file to here.
  */
 import { addCalculatedProps } from './cruncher.js';
-import { MultiAttributeBasedConversion } from './conversions.js';
 
 export default class DataLoader {
   constructor() {
@@ -34,11 +33,6 @@ export default class DataLoader {
     this.flush();
   }
 
-  set rawCriteria(value) {
-    this.criteria = value;
-    this.flush();
-  }
-
   apiURL(datePath, hour) {
     const u = new URL(this.API_ENDPOINT);
     u.pathname = [
@@ -62,10 +56,7 @@ export default class DataLoader {
     const resp = await fetch(apiRequestURL);
     const json = await resp.json();
     const { rumBundles } = json;
-    rumBundles.forEach((bundle) => {
-      const strategy = new MultiAttributeBasedConversion(bundle, this.criteria);
-      addCalculatedProps(bundle, strategy);
-    });
+    rumBundles.forEach((bundle) => addCalculatedProps(bundle));
     return { date, rumBundles };
   }
 
@@ -76,10 +67,7 @@ export default class DataLoader {
     const resp = await fetch(apiRequestURL);
     const json = await resp.json();
     const { rumBundles } = json;
-    rumBundles.forEach((bundle) => {
-      const strategy = new MultiAttributeBasedConversion(bundle, this.criteria);
-      addCalculatedProps(bundle, strategy);
-    });
+    rumBundles.forEach((bundle) => addCalculatedProps(bundle));
     return { date, rumBundles };
   }
 
@@ -91,10 +79,7 @@ export default class DataLoader {
     const resp = await fetch(apiRequestURL);
     const json = await resp.json();
     const { rumBundles } = json;
-    rumBundles.forEach((bundle) => {
-      const strategy = new MultiAttributeBasedConversion(bundle, this.criteria);
-      addCalculatedProps(bundle, strategy);
-    });
+    rumBundles.forEach((bundle) => addCalculatedProps(bundle));
     return { date, hour, rumBundles };
   }
 

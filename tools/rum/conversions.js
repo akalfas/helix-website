@@ -15,6 +15,7 @@ export class MultiAttributeBasedConversion {
   criteria = [];
 
   constructor(bundle, pairs) {
+    // console.log(bundle);
     this.bundle = bundle;
     pairs.forEach((pair) => {
       Object.entries(pair).forEach(([key, value]) => {

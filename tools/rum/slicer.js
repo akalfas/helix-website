@@ -2,11 +2,12 @@
 import { DataChunks } from './cruncher.js';
 import CWVTimeLineChart from './cwvtimeline.js';
 import DataLoader from './loader.js';
-import { toHumanReadable, scoreCWV } from './utils.js';
+import { scoreCWV, toHumanReadable } from './utils.js';
 
 // eslint-disable-next-line import/no-relative-packages
 import { fetchPlaceholders } from '../../scripts/lib-franklin.js';
 import FacetSidebar from './facetsidebar.js';
+import { MultiAttributeBasedConversion } from './conversions.js';
 
 /* globals */
 let DOMAIN_KEY = '';
@@ -30,10 +31,28 @@ const herochart = window.slicer && window.slicer.Chart
   : new CWVTimeLineChart(dataChunks, elems);
 const sidebar = new FacetSidebar(dataChunks, elems);
 
+function extractedConversionParams() {
+  const { searchParams: params } = new URL(window.location);
+  const selectedCheckpoint = params.get('conversion.checkpoint');
+  const selectedSource = params.get('conversion.source');
+  const selectedTarget = params.get('conversion.target');
+  return [
+    {
+      checkpoint: selectedCheckpoint || 'click',
+      source: selectedSource,
+      target: selectedTarget,
+    },
+  ];
+}
+
 // set up metrics for dataChunks
 dataChunks.addSeries('pageViews', (bundle) => bundle.weight);
 dataChunks.addSeries('visits', (bundle) => (bundle.visit ? bundle.weight : 0));
-dataChunks.addSeries('conversions', (bundle) => (bundle.conversion ? bundle.weight : 0));
+// todo change here ...
+dataChunks.addSeries('conversions', (bundle) => {
+  const calc = new MultiAttributeBasedConversion(bundle, extractedConversionParams());
+  return (calc.hasConversion() ? bundle.weight : 0);
+});
 dataChunks.addSeries('lcp', (bundle) => bundle.cwvLCP);
 dataChunks.addSeries('cls', (bundle) => bundle.cwvCLS);
 dataChunks.addSeries('inp', (bundle) => bundle.cwvINP);
@@ -71,6 +90,12 @@ export function updateKeyMetrics(keyMetrics) {
 
 function updateDataFacets(filterText, params, checkpoint) {
   dataChunks.resetFacets();
+  dataChunks.addFacet('conversions', (bundle) => {
+    const rawCriteria = extractedConversionParams();
+    const calc = new MultiAttributeBasedConversion(bundle, rawCriteria);
+    const hasConversion = calc.hasConversion();
+    return hasConversion ? 'converting' : 'not converting';
+  });
   dataChunks.addFacet('userAgent', (bundle) => {
     const parts = bundle.userAgent.split(':');
     return parts.reduce((acc, _, i) => {
@@ -218,12 +243,6 @@ async function fetchDomainKey(domain) {
 async function loadData(scope) {
   const params = new URL(window.location.href).searchParams;
   const endDate = params.get('endDate') ? `${params.get('endDate')}T00:00:00` : null;
-
-  const checkpoint = params.get('conversion.checkpoint');
-  const source = params.get('conversion.source');
-  const target = params.get('conversion.target');
-
-  loader.rawCriteria = [{ checkpoint: checkpoint || 'click', source, target }];
 
   if (scope === 'week') {
     dataChunks.load(await loader.fetchLastWeek(endDate));
