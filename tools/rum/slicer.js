@@ -275,6 +275,11 @@ export function updateState() {
     }
   });
   url.searchParams.set('domainkey', DOMAIN_KEY);
+  // restore the criteria conversion params
+  rawCriteria.forEach((criterion) => {
+    const [key, value] = Object.entries(criterion)[0];
+    url.searchParams.set(`conversion.${key}`, value);
+  });
   window.history.replaceState({}, '', url);
 }
 
