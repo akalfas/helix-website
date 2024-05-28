@@ -45,7 +45,6 @@
 /**
  * Calculates properties on the bundle, so that bundle-level filtering can be performed
  * @param {RawBundle} bundle the raw input bundle, without calculated properties
- * by default it is a click
  * @returns {Bundle} a bundle with additional properties
  */
 export function addCalculatedProps(bundle) {

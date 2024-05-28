@@ -33,16 +33,12 @@ const sidebar = new FacetSidebar(dataChunks, elems);
 
 function extractedConversionParams() {
   const { searchParams: params } = new URL(window.location);
-  const selectedCheckpoint = params.get('conversion.checkpoint');
-  const selectedSource = params.get('conversion.source');
-  const selectedTarget = params.get('conversion.target');
-  return [
-    {
-      checkpoint: selectedCheckpoint || 'click',
-      source: selectedSource,
-      target: selectedTarget,
-    },
-  ];
+  return Array.from(params)
+    .filter(([key]) => key.startsWith('conversion'))
+    .map(([key, value]) => {
+      const [, attr] = key.split('.');
+      return { [attr]: value };
+    });
 }
 
 // set up metrics for dataChunks
@@ -50,6 +46,7 @@ dataChunks.addSeries('pageViews', (bundle) => bundle.weight);
 dataChunks.addSeries('visits', (bundle) => (bundle.visit ? bundle.weight : 0));
 
 const rawCriteria = extractedConversionParams();
+
 dataChunks.addSeries('conversions', (bundle) => {
   const calc = new MultiAttributeBasedConversion(bundle, rawCriteria);
   return (calc.hasConversion() ? bundle.weight : 0);
@@ -168,6 +165,7 @@ function updateFilter(params, filterText) {
       || key === 'userAgent'
       || (key === 'filter' && filterText.length > 2)
       || key === 'url'
+      || key === 'conversions'
       // facets from sankey
       || key === 'trafficsource'
       || key === 'traffictype'
